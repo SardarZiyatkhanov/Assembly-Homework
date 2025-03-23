@@ -1,78 +1,111 @@
 .global _start
+
+.section .text
+
 _start:
-    // Load the address of test_case_1 into a register
+    // Load address of the test string
     ldr r0, =test_case_1
 
-    // Call the to_upper function
+    // Call to_upper
     bl to_upper
 
-    // Uncomment the following line to test to_lower
-    // bl to_lower
+    // Print uppercase result
+    ldr r0, =test_case_1
+    mov r1, r0
+    mov r2, #90            // Length of the string (approx)
+    mov r7, #4             // syscall: write
+    mov r0, #1             // file descriptor: stdout
+    svc #0
 
-    // End of program
-    b _exit
+    // Print a newline
+    ldr r0, =newline
+    mov r1, r0
+    mov r2, #1
+    mov r7, #4
+    mov r0, #1
+    svc #0
 
+    // Call to_lower
+    ldr r0, =test_case_1
+    bl to_lower
+
+    // Print lowercase result
+    ldr r0, =test_case_1
+    mov r1, r0
+    mov r2, #90
+    mov r7, #4
+    mov r0, #1
+    svc #0
+
+    // Exit the program
+    mov r7, #1
+    mov r0, #0
+    svc #0
+
+// -----------------------------
+// Function: to_upper
+// Description: Convert a-z to A-Z
+// -----------------------------
 to_upper:
-    // Iterate over the string and convert lowercase letters to uppercase
-    push {r1, r2, lr}  // Save registers
-    mov r1, r0         // Copy the address of the string to r1
+    push {r1, r2, lr}
 
-upper_loop:
-    ldrb r2, [r1]      // Load the current character into r2
-    cmp r2, #0         // Check if the character is null (end of string)
-    beq upper_end      // If null, end the loop
+loop_upper:
+    ldrb r1, [r0]
+    cmp r1, #0
+    beq end_upper
 
-    // Check if the character is a lowercase letter (a-z)
-    cmp r2, #'a'
-    blt upper_next     // If less than 'a', skip
-    cmp r2, #'z'
-    bgt upper_next     // If greater than 'z', skip
+    cmp r1, #'a'
+    blt skip_upper
+    cmp r1, #'z'
+    bgt skip_upper
 
-    // Convert to uppercase by subtracting 32 (ASCII difference)
-    sub r2, r2, #32
-    strb r2, [r1]      // Store the updated character back to memory
+    sub r1, r1, #32
+    strb r1, [r0]
 
-upper_next:
-    add r1, r1, #1     // Move to the next character
-    b upper_loop       // Repeat the loop
+skip_upper:
+    add r0, r0, #1
+    b loop_upper
 
-upper_end:
-    pop {r1, r2, lr}   // Restore registers
-    bx lr              // Return from the function
+end_upper:
+    pop {r1, r2, lr}
+    bx lr
 
+// -----------------------------
+// Function: to_lower
+// Description: Convert A-Z to a-z
+// -----------------------------
 to_lower:
-    // Iterate over the string and convert uppercase letters to lowercase
-    push {r1, r2, lr}  // Save registers
-    mov r1, r0         // Copy the address of the string to r1
+    push {r1, r2, lr}
 
-lower_loop:
-    ldrb r2, [r1]      // Load the current character into r2
-    cmp r2, #0         // Check if the character is null (end of string)
-    beq lower_end      // If null, end the loop
+loop_lower:
+    ldrb r1, [r0]
+    cmp r1, #0
+    beq end_lower
 
-    // Check if the character is an uppercase letter (A-Z)
-    cmp r2, #'A'
-    blt lower_next     // If less than 'A', skip
-    cmp r2, #'Z'
-    bgt lower_next     // If greater than 'Z', skip
+    cmp r1, #'A'
+    blt skip_lower
+    cmp r1, #'Z'
+    bgt skip_lower
 
-    // Convert to lowercase by adding 32 (ASCII difference)
-    add r2, r2, #32
-    strb r2, [r1]      // Store the updated character back to memory
+    add r1, r1, #32
+    strb r1, [r0]
 
-lower_next:
-    add r1, r1, #1     // Move to the next character
-    b lower_loop       // Repeat the loop
+skip_lower:
+    add r0, r0, #1
+    b loop_lower
 
-lower_end:
-    pop {r1, r2, lr}   // Restore registers
-    bx lr              // Return from the function
+end_lower:
+    pop {r1, r2, lr}
+    bx lr
 
-_exit:
-    // End of program
-    mov r7, #1         // syscall: exit
-    swi 0
+// -----------------------------
+.section .data
 
-data:
-    test_case_1: .asciz "... This STRIng conTainS test data: likE the AT @ SIGn and the PERCent % sign TOo!"
-    test_case_2: .asciz "ANOTHER EXAMPLE STRING 123!"
+test_case_1:
+    .asciz "... This STRIng conTainS test data: likE the AT @ SIGn and the PERCent % sign TOo!"
+
+test_case_2:
+    .asciz ""
+
+newline:
+    .asciz "\n"
